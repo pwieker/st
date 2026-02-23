@@ -59,6 +59,7 @@ static void zoom(const Arg *);
 static void zoomabs(const Arg *);
 static void zoomreset(const Arg *);
 static void ttysend(const Arg *);
+static void chgalpha(const Arg *);
 
 /* config.h for applying patches and the configuration. */
 #include "config.h"
@@ -1394,6 +1395,30 @@ xmakeglyphfontspecs(XftGlyphFontSpec *specs, const Glyph *glyphs, int len, int x
 	}
 
 	return numspecs;
+}
+
+void
+chgalpha(const Arg *arg)
+{
+   if (arg->f == -1.0f && alpha >= 0.1f)
+      alpha -= 0.1f;
+   else if (arg->f == 1.0f && alpha < 1.0f)
+      alpha += 0.1f;
+   else if (arg->f == 0.0f)
+      alpha = alpha_def;
+   else
+      return;
+
+    /* Clamp alpha so it never exceeds valid range */
+    if (alpha < 0.1f)
+        alpha = 0.1f;
+    if (alpha > 1.0f)
+        alpha = 1.0f;
+
+   dc.col[defaultbg].color.alpha = (unsigned short)(0xFFFF * alpha);
+   /* Required to remove artifacting from borderpx */
+   cresize(0, 0);
+   redraw();
 }
 
 void
